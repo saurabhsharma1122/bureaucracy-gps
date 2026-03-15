@@ -669,11 +669,10 @@
   background: rgba(88,166,255,.12);
 }
 
-/* ── Splash Screen ────────────────────────────────────────────────────────── */
+/* ── Splash Screen ───────────────────────────────────────────────────────── */
 @keyframes splashFadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
 @keyframes splashPulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.15)} }
 @keyframes splashFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-@keyframes splashFadeOut { from{opacity:1} to{opacity:0;pointer-events:none} }
 
 .splash {
   background: #0d1117;
@@ -733,70 +732,4 @@
   z-index: 1;
   margin-top: .25rem;
   animation: splashFadeIn .6s ease .6s both;
-}
-
-/* ── Splash Screen ───────────────────────────────────────────────────────── */
-@keyframes splashIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-@keyframes splashOut { from{opacity:1} to{opacity:0} }
-@keyframes floatCompass { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-@keyframes glowPulse { 0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)} 50%{opacity:.7;transform:translate(-50%,-50%) scale(1.1)} }
-
-.splash {
-  background: #0d1117;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  animation: splashIn .5s ease;
-  position: relative;
-  overflow: hidden;
-}
-.splashFade {
-  animation: splashOut .6s ease forwards;
-}
-.splashBg {
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(240,165,0,.08) 0%, transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: glowPulse 3s ease infinite;
-  pointer-events: none;
-}
-.splashCompass {
-  animation: floatCompass 3s ease infinite;
-  position: relative;
-  z-index: 1;
-}
-.splashTitle {
-  font-family: var(--serif);
-  font-size: 2.2rem;
-  color: var(--text);
-  letter-spacing: -.02em;
-  position: relative;
-  z-index: 1;
-}
-.splashTitle span {
-  color: var(--amber);
-}
-.splashSub {
-  font-size: 11px;
-  color: var(--subtle);
-  font-family: var(--mono);
-  letter-spacing: .14em;
-  position: relative;
-  z-index: 1;
-}
-.splashBy {
-  font-size: 12px;
-  color: var(--amber);
-  font-family: var(--mono);
-  letter-spacing: .12em;
-  position: relative;
-  z-index: 1;
-  margin-top: .25rem;
 }

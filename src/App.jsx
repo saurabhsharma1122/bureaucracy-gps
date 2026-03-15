@@ -355,6 +355,28 @@ function ErrorScreen({ onBack, lang }) {
   )
 }
 
+function SplashScreen({ onDone }) {
+  setTimeout(() => onDone(), 2500)
+  return (
+    <div className={styles.splash}>
+      <div className={styles.splashBg}></div>
+      <div className={styles.splashCompass}>
+        <svg width="80" height="80" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="16" stroke="#30363d" strokeWidth="1.5"/>
+          <circle cx="18" cy="18" r="2" fill="#f0a500"/>
+          <polygon points="18,4 20.5,18 18,16 15.5,18" fill="#f0a500"/>
+          <polygon points="18,32 15.5,18 18,20 20.5,18" fill="#484f58"/>
+          <polygon points="4,18 18,15.5 16,18 18,20.5" fill="#8b949e"/>
+          <polygon points="32,18 18,20.5 20,18 18,15.5" fill="#8b949e"/>
+        </svg>
+      </div>
+      <div className={styles.splashTitle}>Bureaucracy <span>GPS</span></div>
+      <div className={styles.splashSub}>NAVIGATE · GOVERNMENT · SYSTEMS</div>
+      <div className={styles.splashBy}>&#x26A1; BUILT BY SAURABH SHARMA</div>
+    </div>
+  )
+}
+
 export default function App() {
   const [splash, setSplash] = useState(true)
   const [screen, setScreen] = useState('home')

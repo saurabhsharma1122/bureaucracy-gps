@@ -1,14 +1,10 @@
 import { useState } from 'react'
 import styles from './App.module.css'
 
-// ─── Paste your FREE Gemini API key here ─────────────────────────────────────
-// Get it free in 1 min: https://aistudio.google.com → "Get API Key" → Create
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
-// ─── Data ────────────────────────────────────────────────────────────────────
-
 const STATES = {
-  India: ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Uttar Pradesh','Kerala','Andhra Pradesh','Telangana','Punjab','Haryana','Bihar','Madhya Pradesh','Other'],
+  India: ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Uttar Pradesh','Kerala','Andhra Pradesh','Telangana','Punjab','Haryana','Bihar','Madhya Pradesh','Odisha','Assam','Jharkhand','Chhattisgarh','Other'],
   USA: ['California','Texas','New York','Florida','Illinois','Pennsylvania','Ohio','Georgia','North Carolina','Michigan','Other'],
   UK: ['England','Scotland','Wales','Northern Ireland'],
   Canada: ['Ontario','Quebec','British Columbia','Alberta','Manitoba','Saskatchewan','Nova Scotia','Other'],
@@ -17,25 +13,102 @@ const STATES = {
   Other: ['Not applicable'],
 }
 
-const EXAMPLES = [
-  'Register a plot of land I recently purchased',
-  'Lost all my documents in a flood',
-  'I need to register my small business',
-  'Apply for a passport for the first time',
-  'Transfer vehicle ownership after buying a used car',
-  'Change my name on government documents after marriage',
-  'Apply for a birth certificate for my newborn',
-]
+const EXAMPLES = {
+  en: [
+    'Register a plot of land I recently purchased',
+    'Lost all my documents in a flood',
+    'I need to register my small business',
+    'Apply for a passport for the first time',
+    'Transfer vehicle ownership after buying a used car',
+    'Change my name on government documents after marriage',
+    'Apply for a birth certificate for my newborn',
+  ],
+  hi: [
+    'मैंने हाल ही में जमीन खरीदी है, उसे अपने नाम कैसे करें',
+    'बाढ़ में सारे दस्तावेज़ खो गए, अब क्या करें',
+    'अपना छोटा व्यवसाय रजिस्टर करना है',
+    'पहली बार पासपोर्ट के लिए आवेदन करना है',
+    'पुरानी गाड़ी खरीदी है, नाम ट्रांसफर कैसे होगा',
+    'शादी के बाद सरकारी दस्तावेज़ में नाम बदलना है',
+    'नवजात बच्चे का जन्म प्रमाण पत्र बनवाना है',
+  ]
+}
 
-const LOADING_MSGS = [
-  'Researching the process for your situation…',
-  'Identifying the right offices and departments…',
-  'Mapping out the document requirements…',
-  'Calculating time and cost estimates…',
-  'Putting together your personalised guide…',
-]
+const LOADING_MSGS = {
+  en: [
+    'Researching the process for your situation…',
+    'Identifying the right offices and departments…',
+    'Finding official websites and links…',
+    'Calculating time and cost estimates…',
+    'Putting together your personalised guide…',
+  ],
+  hi: [
+    'आपकी स्थिति के लिए जानकारी खोज रहे हैं…',
+    'सही दफ्तर और विभाग ढूंढ रहे हैं…',
+    'सरकारी वेबसाइट और लिंक खोज रहे हैं…',
+    'समय और खर्च का अनुमान लगा रहे हैं…',
+    'आपके लिए गाइड तैयार कर रहे हैं…',
+  ]
+}
 
-// ─── Compass SVG ─────────────────────────────────────────────────────────────
+const UI = {
+  en: {
+    eyebrow: 'Your personal government guide',
+    title1: 'What do you need to',
+    title2: 'navigate today?',
+    sub: 'Describe your situation in plain language. Get a clear, step-by-step roadmap — which office, which form, what documents, in what order.',
+    label: 'Describe your situation',
+    placeholder: 'e.g. I recently bought a plot of land in Pune and need to get the registration done in my name. I have the sale deed but not sure what the next steps are.',
+    country: 'Country',
+    state: 'State / Region',
+    btn: 'Get my roadmap →',
+    footer: 'Free to use · No account required · Powered by AI',
+    back: '← New search',
+    expand: '▼ Expand all',
+    copy: '⎘ Copy guide',
+    print: '⎙ Print',
+    whatsapp: '📲 Share on WhatsApp',
+    roadmap: 'Your step-by-step roadmap',
+    time: 'Time',
+    cost: 'Cost',
+    docs: 'Documents needed',
+    notes: 'Important notes',
+    disclaimer: 'This guide is for informational purposes only. Always verify with official government sources before taking action.',
+    steps: 'steps',
+    loading: 'Mapping your route…',
+    error: 'Unable to generate your guide. Please check your internet and try again.',
+    tryAgain: '← Try again',
+    official: 'Official websites',
+  },
+  hi: {
+    eyebrow: 'आपका सरकारी मार्गदर्शक',
+    title1: 'आज आपको क्या',
+    title2: 'समझना है?',
+    sub: 'अपनी बात सीधे लिखें। हम आपको बताएंगे — कौन सा दफ्तर, कौन सा फॉर्म, कौन से कागज़, और किस क्रम में।',
+    label: 'अपनी स्थिति बताएं',
+    placeholder: 'जैसे: मैंने पुणे में जमीन खरीदी है और उसे अपने नाम करवाना है। मेरे पास सेल डीड है लेकिन आगे के कदम नहीं पता।',
+    country: 'देश',
+    state: 'राज्य / क्षेत्र',
+    btn: 'मेरा रोडमैप बनाएं →',
+    footer: 'बिल्कुल मुफ्त · कोई अकाउंट नहीं · AI द्वारा संचालित',
+    back: '← नई खोज',
+    expand: '▼ सब खोलें',
+    copy: '⎘ कॉपी करें',
+    print: '⎙ प्रिंट करें',
+    whatsapp: '📲 WhatsApp पर शेयर करें',
+    roadmap: 'आपका चरण-दर-चरण रोडमैप',
+    time: 'समय',
+    cost: 'खर्च',
+    docs: 'जरूरी दस्तावेज़',
+    notes: 'जरूरी बातें',
+    disclaimer: 'यह जानकारी सामान्य मार्गदर्शन के लिए है। कोई भी कदम उठाने से पहले आधिकारिक सरकारी स्रोत से जांच करें।',
+    steps: 'चरण',
+    loading: 'आपका रास्ता बना रहे हैं…',
+    error: 'गाइड नहीं बन सकी। इंटरनेट जांचें और फिर कोशिश करें।',
+    tryAgain: '← फिर कोशिश करें',
+    official: 'सरकारी वेबसाइट',
+  }
+}
 
 function Compass({ size = 36 }) {
   return (
@@ -50,31 +123,35 @@ function Compass({ size = 36 }) {
   )
 }
 
-// ─── Header ──────────────────────────────────────────────────────────────────
-
-function Header() {
+function Header({ lang, setLang }) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
         <Compass />
         <div>
           <div className={styles.logoText}>Bureaucracy GPS</div>
-          <div className={styles.logoSub}>Navigate government systems</div>
+          <div className={styles.logoSub}>{lang === 'en' ? 'Navigate government systems' : 'सरकारी प्रक्रिया आसान बनाएं'}</div>
         </div>
       </div>
-      <div className={styles.headerTag}>Beta · Free</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+        <button
+          className={styles.langToggle}
+          onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        >
+          {lang === 'en' ? '🇮🇳 हिन्दी' : '🇬🇧 English'}
+        </button>
+        <div className={styles.headerTag}>Beta · Free</div>
+      </div>
     </header>
   )
 }
 
-// ─── Home Screen ─────────────────────────────────────────────────────────────
-
-function HomeScreen({ onSubmit }) {
+function HomeScreen({ onSubmit, lang }) {
   const [situation, setSituation] = useState('')
   const [country, setCountry] = useState('India')
   const [state, setState] = useState('Maharashtra')
   const [error, setError] = useState(false)
-
+  const t = UI[lang]
   const stateList = STATES[country] || ['Other']
 
   const handleCountryChange = (e) => {
@@ -94,21 +171,14 @@ function HomeScreen({ onSubmit }) {
   return (
     <>
       <div className={styles.hero}>
-        <div className={styles.heroEyebrow}>Your personal government guide</div>
+        <div className={styles.heroEyebrow}>{t.eyebrow}</div>
         <h1 className={styles.heroTitle}>
-          What do you need to<br /><span>navigate today?</span>
+          {t.title1}<br /><span>{t.title2}</span>
         </h1>
-        <p className={styles.heroSub}>
-          Describe your situation in plain language. Get a clear, step-by-step roadmap —
-          which office, which form, what documents, in what order.
-        </p>
+        <p className={styles.heroSub}>{t.sub}</p>
         <div className={styles.examples}>
-          {EXAMPLES.map((ex) => (
-            <button
-              key={ex}
-              className={styles.exampleChip}
-              onClick={() => setSituation(ex)}
-            >
+          {EXAMPLES[lang].map((ex) => (
+            <button key={ex} className={styles.exampleChip} onClick={() => setSituation(ex)}>
               {ex}
             </button>
           ))}
@@ -117,125 +187,100 @@ function HomeScreen({ onSubmit }) {
 
       <div className={styles.formWrap}>
         <div className={styles.formCard}>
-          <label className={styles.formLabel}>Describe your situation</label>
+          <label className={styles.formLabel}>{t.label}</label>
           <textarea
             className={`${styles.textarea} ${error ? styles.textareaError : ''}`}
             value={situation}
             onChange={(e) => setSituation(e.target.value)}
-            placeholder="e.g. I recently bought a plot of land in Pune and need to get the registration and mutation done in my name. I have the sale deed but not sure what the next steps are."
+            placeholder={t.placeholder}
             rows={5}
           />
-
           <div className={styles.selectsRow}>
             <div>
-              <label className={styles.formLabel} style={{ marginTop: '.75rem' }}>Country</label>
+              <label className={styles.formLabel} style={{ marginTop: '.75rem' }}>{t.country}</label>
               <div className={styles.selectWrap}>
                 <select className={styles.select} value={country} onChange={handleCountryChange}>
-                  {Object.keys(STATES).map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
+                  {Object.keys(STATES).map((c) => <option key={c}>{c}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className={styles.formLabel} style={{ marginTop: '.75rem' }}>State / Region</label>
+              <label className={styles.formLabel} style={{ marginTop: '.75rem' }}>{t.state}</label>
               <div className={styles.selectWrap}>
-                <select
-                  className={styles.select}
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                >
-                  {stateList.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
+                <select className={styles.select} value={state} onChange={(e) => setState(e.target.value)}>
+                  {stateList.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
             </div>
           </div>
-
           <button className={styles.btnMain} onClick={handleSubmit}>
-            <span>Get my roadmap</span>
-            <span>→</span>
+            {t.btn}
           </button>
         </div>
-        <div className={styles.formFooter}>
-          Free to use · No account required · Powered by Claude AI
-        </div>
+        <div className={styles.formFooter}>{t.footer}</div>
       </div>
     </>
   )
 }
 
-// ─── Loading Screen ───────────────────────────────────────────────────────────
-
-function LoadingScreen({ msg }) {
+function LoadingScreen({ msg, lang }) {
   return (
     <div className={styles.loadingWrap}>
       <div className={styles.spinRing} />
-      <div className={styles.loadingTitle}>Mapping your route…</div>
+      <div className={styles.loadingTitle}>{UI[lang].loading}</div>
       <div className={styles.loadingSub}>{msg}</div>
     </div>
   )
 }
 
-// ─── Step Card ────────────────────────────────────────────────────────────────
-
-function StepCard({ step, defaultOpen }) {
+function StepCard({ step, defaultOpen, t }) {
   const [open, setOpen] = useState(defaultOpen)
-
   return (
     <div className={`${styles.stepCard} ${open ? styles.stepCardOpen : ''}`}>
       <div className={styles.stepHeader} onClick={() => setOpen(!open)}>
         <div className={styles.stepNum}>{step.step}</div>
         <div className={styles.stepHeadText}>
           <div className={styles.stepTitle}>{step.title}</div>
-          {step.where_to_go && (
-            <div className={styles.stepWhere}>{step.where_to_go}</div>
-          )}
+          {step.where_to_go && <div className={styles.stepWhere}>{step.where_to_go}</div>}
         </div>
         <div className={`${styles.stepChevron} ${open ? styles.chevronOpen : ''}`}>▼</div>
       </div>
-
       {open && (
         <div className={styles.stepBody}>
-          {step.description && (
-            <p className={styles.stepDesc}>{step.description}</p>
-          )}
-
+          {step.description && <p className={styles.stepDesc}>{step.description}</p>}
           <div className={styles.stepGrid}>
             <div className={styles.stepInfo}>
-              <div className={styles.stepInfoLabel}>Time</div>
+              <div className={styles.stepInfoLabel}>{t.time}</div>
               <div className={styles.stepInfoVal}>{step.time_estimate || '—'}</div>
             </div>
             <div className={styles.stepInfo}>
-              <div className={styles.stepInfoLabel}>Cost</div>
+              <div className={styles.stepInfoLabel}>{t.cost}</div>
               <div className={styles.stepInfoVal}>{step.cost_estimate || '—'}</div>
             </div>
           </div>
-
           {step.documents_needed?.length > 0 && (
             <div className={styles.docsSection}>
-              <div className={styles.docsTitle}>Documents needed</div>
+              <div className={styles.docsTitle}>{t.docs}</div>
               {step.documents_needed.map((doc, i) => (
                 <div key={i} className={styles.docItem}>
-                  <span className={styles.docDot} />
-                  {doc}
+                  <span className={styles.docDot} />{doc}
                 </div>
               ))}
             </div>
           )}
-
+          {step.official_link && (
+            <a href={step.official_link} target="_blank" rel="noopener noreferrer" className={styles.officialLink}>
+              🔗 {t.official}: {step.official_link}
+            </a>
+          )}
           {step.tip && (
             <div className={styles.tipBox}>
-              <span style={{ fontSize: 12, marginRight: 6 }}>💡</span>
-              {step.tip}
+              <span style={{ fontSize: 12, marginRight: 6 }}>💡</span>{step.tip}
             </div>
           )}
-
           {step.warning && (
             <div className={styles.warnBox}>
-              <span style={{ fontSize: 12, marginRight: 6 }}>⚠</span>
-              {step.warning}
+              <span style={{ fontSize: 12, marginRight: 6 }}>⚠</span>{step.warning}
             </div>
           )}
         </div>
@@ -244,127 +289,126 @@ function StepCard({ step, defaultOpen }) {
   )
 }
 
-// ─── Results Screen ───────────────────────────────────────────────────────────
-
-function ResultsScreen({ guide, onBack }) {
+function ResultsScreen({ guide, onBack, lang }) {
   const [allOpen, setAllOpen] = useState(false)
+  const t = UI[lang]
 
   const copyGuide = () => {
     let text = guide.title + '\n\n' + guide.summary
-    text += '\n\nEstimated time: ' + guide.estimated_total_time
-    text += '\nEstimated cost: ' + guide.estimated_total_cost + '\n\n'
+    text += '\n\n' + t.time + ': ' + guide.estimated_total_time
+    text += '\n' + t.cost + ': ' + guide.estimated_total_cost + '\n\n'
     guide.steps.forEach((s) => {
-      text += `Step ${s.step}: ${s.title}\nWhere: ${s.where_to_go}\n${s.description}\n`
-      if (s.documents_needed?.length) text += 'Documents: ' + s.documents_needed.join(', ') + '\n'
-      if (s.tip) text += 'Tip: ' + s.tip + '\n'
-      if (s.warning) text += 'Warning: ' + s.warning + '\n'
+      text += `${s.step}. ${s.title}\n${s.description}\n`
+      if (s.documents_needed?.length) text += t.docs + ': ' + s.documents_needed.join(', ') + '\n'
+      if (s.official_link) text += '🔗 ' + s.official_link + '\n'
+      if (s.tip) text += '💡 ' + s.tip + '\n'
       text += '\n'
     })
-    if (guide.important_notes) text += 'Notes: ' + guide.important_notes
     navigator.clipboard.writeText(text)
+  }
+
+  const shareWhatsApp = () => {
+    const text = `*${guide.title}*\n\n${guide.summary}\n\n⏱ ${guide.estimated_total_time} | 💰 ${guide.estimated_total_cost}\n\n${guide.steps.map(s => `*${s.step}. ${s.title}*\n${s.description}`).join('\n\n')}\n\n_Bureaucracy GPS से — bureaucracy-gps.vercel.app_`
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
   }
 
   return (
     <div className={styles.results}>
-      <button className={styles.btnBack} onClick={onBack}>← New search</button>
-
-      {/* Summary card */}
+      <button className={styles.btnBack} onClick={onBack}>{t.back}</button>
       <div className={styles.resultHeader}>
         <div className={styles.resultTitle}>{guide.title}</div>
         <div className={styles.resultSummary}>{guide.summary}</div>
         <div className={styles.metaPills}>
           <span className={`${styles.metaPill} ${styles.pillTime}`}>⏱ {guide.estimated_total_time}</span>
           <span className={`${styles.metaPill} ${styles.pillCost}`}>{guide.estimated_total_cost}</span>
-          <span className={`${styles.metaPill} ${styles.pillSteps}`}>{guide.steps.length} steps</span>
+          <span className={`${styles.metaPill} ${styles.pillSteps}`}>{guide.steps.length} {t.steps}</span>
         </div>
       </div>
-
-      {/* Actions */}
       <div className={styles.actionRow}>
-        <button className={styles.btnSm} onClick={() => setAllOpen(true)}>▼ Expand all</button>
-        <button className={styles.btnSm} onClick={copyGuide}>⎘ Copy guide</button>
-        <button className={styles.btnSm} onClick={() => window.print()}>⎙ Print</button>
+        <button className={styles.btnSm} onClick={() => setAllOpen(true)}>{t.expand}</button>
+        <button className={styles.btnSm} onClick={copyGuide}>{t.copy}</button>
+        <button className={styles.btnSm} onClick={() => window.print()}>{t.print}</button>
+        <button className={`${styles.btnSm} ${styles.btnWhatsapp}`} onClick={shareWhatsApp}>{t.whatsapp}</button>
       </div>
-
-      <div className={styles.stepsLabel}>Your step-by-step roadmap</div>
-
+      <div className={styles.stepsLabel}>{t.roadmap}</div>
       {guide.steps.map((step, i) => (
-        <StepCard key={i} step={step} defaultOpen={i === 0 || allOpen} />
+        <StepCard key={i} step={step} defaultOpen={i === 0 || allOpen} t={t} />
       ))}
-
       {guide.important_notes && (
         <div className={styles.notesCard}>
-          <div className={styles.notesLabel}>Important notes</div>
+          <div className={styles.notesLabel}>{t.notes}</div>
           <div className={styles.notesText}>{guide.important_notes}</div>
         </div>
       )}
-
-      <div className={styles.disclaimer}>
-        This guide is for informational purposes only. Laws and procedures change —
-        always verify with official government sources or a qualified professional before taking action.
-      </div>
+      <div className={styles.disclaimer}>{t.disclaimer}</div>
     </div>
   )
 }
 
-// ─── Error Screen ─────────────────────────────────────────────────────────────
-
-function ErrorScreen({ onBack }) {
+function ErrorScreen({ onBack, lang }) {
+  const t = UI[lang]
   return (
     <div className={styles.errorWrap}>
-      <div className={styles.errorBox}>
-        Unable to generate your guide right now. Please check your internet connection and try again.
-      </div>
-      <button className={styles.btnBack} onClick={onBack}>← Try again</button>
+      <div className={styles.errorBox}>{t.error}</div>
+      <button className={styles.btnBack} onClick={onBack}>{t.tryAgain}</button>
     </div>
   )
 }
 
-// ─── App Root ─────────────────────────────────────────────────────────────────
-
 export default function App() {
-  const [screen, setScreen] = useState('home') // home | loading | results | error
+  const [screen, setScreen] = useState('home')
   const [guide, setGuide] = useState(null)
-  const [loadingMsg, setLoadingMsg] = useState(LOADING_MSGS[0])
+  const [lang, setLang] = useState('en')
+  const [loadingMsg, setLoadingMsg] = useState(LOADING_MSGS.en[0])
 
   const handleSubmit = async ({ situation, country, state }) => {
     setScreen('loading')
     let mi = 0
     const iv = setInterval(() => {
-      mi = (mi + 1) % LOADING_MSGS.length
-      setLoadingMsg(LOADING_MSGS[mi])
+      mi = (mi + 1) % LOADING_MSGS[lang].length
+      setLoadingMsg(LOADING_MSGS[lang][mi])
     }, 2200)
 
-    const prompt = `You are Bureaucracy GPS, a world-class expert in government processes and administrative procedures.
+    const isHindi = lang === 'hi'
 
-A user needs help navigating a government process. Give a clear, accurate, step-by-step roadmap.
+    const prompt = `You are Bureaucracy GPS, an expert in government processes for every country. Help the user navigate their situation.
 
 Situation: ${situation}
 Country: ${country}
 State/Region: ${state}
+Response language: ${isHindi ? 'Hindi (Devanagari script)' : 'Simple English — explain like talking to a neighbour, not a lawyer. Use very simple words.'}
+
+Rules:
+- Use simple, easy to understand language
+- Be very specific about office names, form numbers, websites
+- Include official government website URLs wherever possible
+- Explain WHY each step is needed in simple terms
 
 Respond ONLY with valid JSON (no markdown, no backticks):
 {
-  "title": "Short title of the process",
-  "summary": "2-3 sentence plain English overview",
-  "estimated_total_time": "e.g. 2-4 weeks",
-  "estimated_total_cost": "e.g. Rs.500-2000 or Free",
+  "title": "Short title ${isHindi ? 'in Hindi' : 'in simple English'}",
+  "summary": "2-3 simple sentences explaining what needs to happen overall",
+  "estimated_total_time": "e.g. 2-4 हफ्ते or 2-4 weeks",
+  "estimated_total_cost": "e.g. ₹500-2000 or Free",
   "steps": [
     {
       "step": 1,
       "title": "Step title",
-      "description": "What to do and why",
-      "where_to_go": "Specific office, website, or location",
-      "documents_needed": ["doc1", "doc2"],
+      "description": "Very simple explanation of what to do. Like explaining to someone who has never done this before.",
+      "where_to_go": "Exact office name or website URL",
+      "official_link": "Official government website URL if available, or empty string",
+      "documents_needed": ["document 1", "document 2"],
       "time_estimate": "e.g. 1-3 days",
-      "cost_estimate": "e.g. Rs.100 or Free",
-      "tip": "Practical tip or empty string",
-      "warning": "Important warning or empty string"
+      "cost_estimate": "e.g. ₹100 or Free",
+      "tip": "Simple practical tip that saves time or money, or empty string",
+      "warning": "Important warning in simple words, or empty string"
     }
   ],
-  "important_notes": "Crucial notes or variations",
-  "online_resources": ["resource name and URL"]
-}`
+  "important_notes": "Any important things to know, in simple language",
+  "online_resources": ["name - URL"]
+}
+
+Include 4-8 steps. Be specific and practical.`
 
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -398,11 +442,11 @@ Respond ONLY with valid JSON (no markdown, no backticks):
 
   return (
     <>
-      <Header />
-      {screen === 'home' && <HomeScreen onSubmit={handleSubmit} />}
-      {screen === 'loading' && <LoadingScreen msg={loadingMsg} />}
-      {screen === 'results' && <ResultsScreen guide={guide} onBack={() => setScreen('home')} />}
-      {screen === 'error' && <ErrorScreen onBack={() => setScreen('home')} />}
+      <Header lang={lang} setLang={setLang} />
+      {screen === 'home' && <HomeScreen onSubmit={handleSubmit} lang={lang} />}
+      {screen === 'loading' && <LoadingScreen msg={loadingMsg} lang={lang} />}
+      {screen === 'results' && <ResultsScreen guide={guide} onBack={() => setScreen('home')} lang={lang} />}
+      {screen === 'error' && <ErrorScreen onBack={() => setScreen('home')} lang={lang} />}
     </>
   )
 }

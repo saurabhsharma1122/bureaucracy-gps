@@ -1,0 +1,29 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --card: #1c2333;
+  --border: #30363d;
+  --amber: #f0a500;
+  --amber-dim: #7a5200;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --subtle: #484f58;
+  --green: #3fb950;
+  --red: #f85149;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+button { font-family: var(--sans); }

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import styles from './App.module.css'
 
+const GEMINI_API_KEY = 'AIzaSyDJAKAMszpgjbA-zJ-nGYW--8Tof11S1HM'
+
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const STATES = {
@@ -331,16 +333,55 @@ export default function App() {
       setLoadingMsg(LOADING_MSGS[mi])
     }, 2200)
 
+    const prompt = `You are Bureaucracy GPS, a world-class expert in government processes and administrative procedures.
+
+A user needs help navigating a government process. Give a clear, accurate, step-by-step roadmap.
+
+Situation: ${situation}
+Country: ${country}
+State/Region: ${state}
+
+Respond ONLY with valid JSON (no markdown, no backticks):
+{
+  "title": "Short title of the process",
+  "summary": "2-3 sentence plain English overview",
+  "estimated_total_time": "e.g. 2-4 weeks",
+  "estimated_total_cost": "e.g. Rs.500-2000 or Free",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Step title",
+      "description": "What to do and why",
+      "where_to_go": "Specific office, website, or location",
+      "documents_needed": ["doc1", "doc2"],
+      "time_estimate": "e.g. 1-3 days",
+      "cost_estimate": "e.g. Rs.100 or Free",
+      "tip": "Practical tip or empty string",
+      "warning": "Important warning or empty string"
+    }
+  ],
+  "important_notes": "Crucial notes or variations",
+  "online_resources": ["resource name and URL"]
+}`
+
     try {
-      const res = await fetch('/api/guide', {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ situation, country, state }),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 2000 },
+        }),
       })
       const data = await res.json()
       clearInterval(iv)
-      if (!res.ok) throw new Error(data.error)
-      setGuide(data)
+      if (!res.ok) throw new Error('API error')
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!text) throw new Error('Empty response')
+      const clean = text.replace(/\`\`\`json|\`\`\`/g, '').trim()
+      const guide = JSON.parse(clean)
+      setGuide(guide)
       setScreen('results')
     } catch (err) {
       clearInterval(iv)

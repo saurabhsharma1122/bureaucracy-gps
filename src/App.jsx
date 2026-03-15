@@ -356,7 +356,7 @@ function ErrorScreen({ onBack, lang }) {
 }
 
 function SplashScreen({ onDone }) {
-  setTimeout(() => onDone(), 5800)
+  useEffect(() => { const t = setTimeout(() => onDone(), 5800); return () => clearTimeout(t) }, [])
   return (
     <div className={styles.splash}>
       <div className={styles.splashGlow} id="sg"></div>

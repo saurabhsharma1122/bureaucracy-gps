@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import styles from './App.module.css'
 
-const GEMINI_API_KEY = 'AIzaSyDJAKAMszpgjbA-zJ-nGYW--8Tof11S1HM'
+// ─── Paste your FREE Gemini API key here ─────────────────────────────────────
+// Get it free in 1 min: https://aistudio.google.com → "Get API Key" → Create
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -365,21 +367,25 @@ Respond ONLY with valid JSON (no markdown, no backticks):
 }`
 
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
-      const res = await fetch(url, {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 2000 },
+          model: 'meta-llama/llama-3.1-8b-instruct:free',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+          temperature: 0.4,
         }),
       })
       const data = await res.json()
       clearInterval(iv)
       if (!res.ok) throw new Error('API error')
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+      const text = data.choices?.[0]?.message?.content
       if (!text) throw new Error('Empty response')
-      const clean = text.replace(/\`\`\`json|\`\`\`/g, '').trim()
+      const clean = text.replace(/```json|```/g, '').trim()
       const guide = JSON.parse(clean)
       setGuide(guide)
       setScreen('results')

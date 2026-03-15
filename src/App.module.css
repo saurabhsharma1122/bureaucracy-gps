@@ -670,9 +670,10 @@
 }
 
 /* ── Splash Screen ───────────────────────────────────────────────────────── */
-@keyframes splashFadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-@keyframes splashPulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.15)} }
-@keyframes splashFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes splashGlowPulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.15)} }
+@keyframes splashRock      { 0%{transform:rotate(0)} 15%{transform:rotate(18deg)} 35%{transform:rotate(-14deg)} 55%{transform:rotate(10deg)} 70%{transform:rotate(-6deg)} 82%{transform:rotate(3deg)} 90%{transform:rotate(-1.5deg)} 100%{transform:rotate(0)} }
+@keyframes splashFloat     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes splashTextIn    { from{opacity:0;transform:translateY(14px);filter:blur(3px)} to{opacity:1;transform:translateY(0);filter:blur(0)} }
 
 .splash {
   background: #0d1117;
@@ -681,55 +682,44 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: .9rem;
+  gap: 1rem;
   position: relative;
   overflow: hidden;
-  animation: splashFadeIn .5s ease;
 }
-.splashBg {
+.splashGlow {
   position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(240,165,0,.07) 0%, transparent 65%);
-  top: 50%;
-  left: 50%;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(240,165,0,.09) 0%, transparent 62%);
+  top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  animation: splashPulse 3s ease infinite;
-  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  animation: splashGlowPulse 4s ease 1s infinite;
 }
-.splashCompass {
-  animation: splashFloat 3s ease infinite;
+.splashCw {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  transform-origin: center center;
 }
 .splashTitle {
   font-family: var(--serif);
   font-size: 2.2rem;
   color: var(--text);
   letter-spacing: -.02em;
-  position: relative;
-  z-index: 1;
-  animation: splashFadeIn .6s ease .2s both;
+  position: relative; z-index: 2;
 }
-.splashTitle span {
-  color: var(--amber);
-}
+.splashTitle span { color: var(--amber); }
 .splashSub {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--subtle);
   font-family: var(--mono);
-  letter-spacing: .14em;
-  position: relative;
-  z-index: 1;
-  animation: splashFadeIn .6s ease .4s both;
+  letter-spacing: .18em;
+  position: relative; z-index: 2;
 }
 .splashBy {
   font-size: 12px;
   color: var(--amber);
   font-family: var(--mono);
-  letter-spacing: .12em;
-  position: relative;
-  z-index: 1;
-  margin-top: .25rem;
-  animation: splashFadeIn .6s ease .6s both;
+  letter-spacing: .1em;
+  position: relative; z-index: 2;
 }

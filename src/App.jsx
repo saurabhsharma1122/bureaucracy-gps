@@ -356,7 +356,82 @@ function ErrorScreen({ onBack, lang }) {
 }
 
 function SplashScreen({ onDone }) {
-  setTimeout(() => onDone(), 2500)
+  setTimeout(() => onDone(), 5800)
+  return (
+    <div className={styles.splash}>
+      <div className={styles.splashGlow} id="sg"></div>
+      <div className={styles.splashCw} id="cw">
+        <svg id="cssvg" width="110" height="110" viewBox="0 0 36 36" fill="none">
+          <circle id="cdot"   cx="18" cy="18" r="0"  fill="#f0a500"/>
+          <circle id="cring"  cx="18" cy="18" r="16" stroke="#2a3140" strokeWidth="1.5" fill="none" strokeDasharray="101" strokeDashoffset="101"/>
+          <polygon id="cn"  points="18,5 20.2,17.5 18,16.2 15.8,17.5" fill="#f0a500" opacity="0"/>
+          <polygon id="cs"  points="18,31 15.8,18.5 18,19.8 20.2,18.5" fill="#484f58" opacity="0"/>
+          <polygon id="cw2" points="5,18 17.5,15.8 16.2,18 17.5,20.2"  fill="#6b7280" opacity="0"/>
+          <polygon id="ce"  points="31,18 18.5,20.2 19.8,18 18.5,15.8" fill="#6b7280" opacity="0"/>
+        </svg>
+      </div>
+      <div className={styles.splashTitle} id="sttl" style={{opacity:0}}>Bureaucracy <span>GPS</span></div>
+      <div className={styles.splashSub}   id="ssub" style={{opacity:0}}>NAVIGATE · GOVERNMENT · SYSTEMS</div>
+      <div className={styles.splashBy}    id="sby"  style={{opacity:0}}>&#x26A1; BUILT BY SAURABH SHARMA</div>
+      <SplashRunner />
+    </div>
+  )
+}
+
+function SplashRunner() {
+  useEffect(() => {
+    function anim(el, prop, from, to, dur, delay, easing, done) {
+      setTimeout(() => {
+        const start = performance.now()
+        const ease = t => {
+          if (easing === 'spring') return 1 - Math.pow(2,-10*t) * Math.cos(t * Math.PI * 3.5)
+          if (easing === 'out')    return 1 - Math.pow(1-t, 3)
+          return t
+        }
+        const step = now => {
+          const t = Math.min((now - start) / dur, 1)
+          const v = from + (to - from) * ease(t)
+          if (prop === 'dashoffset') el.style.strokeDashoffset = v
+          else if (prop === 'r')    el.setAttribute('r', v)
+          else if (prop === 'opacity') el.style.opacity = v
+          if (t < 1) requestAnimationFrame(step)
+          else if (done) done()
+        }
+        requestAnimationFrame(step)
+      }, delay)
+    }
+
+    const dot   = document.getElementById('cdot')
+    const ring  = document.getElementById('cring')
+    const north = document.getElementById('cn')
+    const south = document.getElementById('cs')
+    const west  = document.getElementById('cw2')
+    const east  = document.getElementById('ce')
+    const cw    = document.getElementById('cw')
+    const glow  = document.getElementById('sg')
+    const ttl   = document.getElementById('sttl')
+    const sub   = document.getElementById('ssub')
+    const by    = document.getElementById('sby')
+
+    anim(dot,   'r',          0,   2.5, 350, 200,  'spring')
+    setTimeout(() => { if(glow) glow.style.opacity = 1 }, 400)
+    anim(ring,  'dashoffset', 101, 0,   900, 600,  'out')
+    anim(dot,   'r',          2.5, 2,   200, 1400, 'out')
+    anim(north, 'opacity',    0,   1,   350, 1600, 'out')
+    anim(south, 'opacity',    0,   1,   350, 1950, 'out')
+    anim(west,  'opacity',    0,   1,   300, 2250, 'out')
+    anim(east,  'opacity',    0,   1,   300, 2450, 'out')
+
+    setTimeout(() => { if(cw) cw.style.animation = 'splashRock 2.2s cubic-bezier(.4,0,.2,1) forwards' }, 2800)
+    setTimeout(() => { if(ttl) { ttl.style.animation = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 3200)
+    setTimeout(() => { if(sub) { sub.style.animation = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 3700)
+    setTimeout(() => { if(by)  { by.style.animation  = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 4100)
+    setTimeout(() => { if(cw)  { cw.style.animation  = 'splashFloat 3.5s ease infinite' } }, 5200)
+  }, [])
+  return null
+}
+
+function _unused() { setTimeout(() => {}, 0)
   return (
     <div className={styles.splash}>
       <div className={styles.splashBg}></div>

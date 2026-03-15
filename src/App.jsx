@@ -374,7 +374,7 @@ Respond ONLY with valid JSON (no markdown, no backticks):
           'Authorization': `Bearer ${GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-3.1-8b-instruct:free',
+          model: 'openrouter/hunter-alpha',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
           temperature: 0.4,

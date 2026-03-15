@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from './App.module.css'
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
@@ -62,7 +62,7 @@ const UI = {
     country: 'Country',
     state: 'State / Region',
     btn: 'Get my roadmap →',
-    footer: 'Free to use · No account required · Powered by AI',
+    footer: 'Free to use · No account required · Built by Saurabh Sharma',
     back: '← New search',
     expand: '▼ Expand all',
     copy: '⎘ Copy guide',
@@ -90,7 +90,7 @@ const UI = {
     country: 'देश',
     state: 'राज्य / क्षेत्र',
     btn: 'मेरा रोडमैप बनाएं →',
-    footer: 'बिल्कुल मुफ्त · कोई अकाउंट नहीं · AI द्वारा संचालित',
+    footer: 'बिल्कुल मुफ्त · कोई अकाउंट नहीं · Saurabh Sharma द्वारा निर्मित',
     back: '← नई खोज',
     expand: '▼ सब खोलें',
     copy: '⎘ कॉपी करें',
@@ -356,6 +356,7 @@ function ErrorScreen({ onBack, lang }) {
 }
 
 export default function App() {
+  const [splash, setSplash] = useState(true)
   const [screen, setScreen] = useState('home')
   const [guide, setGuide] = useState(null)
   const [lang, setLang] = useState('en')
@@ -439,6 +440,8 @@ Include 4-8 steps. Be specific and practical.`
       setScreen('error')
     }
   }
+
+  if (splash) return <SplashScreen onDone={() => setSplash(false)} />
 
   return (
     <>

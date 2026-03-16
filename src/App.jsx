@@ -78,7 +78,7 @@ const UI = {
     loading: 'Mapping your route…',
     error: 'Unable to generate your guide. Please check your internet and try again.',
     tryAgain: '← Try again',
-    official: 'Official websites',
+    official: 'Official website',
   },
   hi: {
     eyebrow: 'आपका सरकारी मार्गदर्शक',
@@ -110,34 +110,54 @@ const UI = {
   }
 }
 
-function Compass({ size = 36 }) {
+// ── Splash Screen ─────────────────────────────────────────────────────────────
+
+function SplashScreen({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(() => onDone(), 6200)
+    return () => clearTimeout(t)
+  }, [])
   return (
-    <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-      <circle cx="18" cy="18" r="16" stroke="#30363d" strokeWidth="1.5" />
-      <circle cx="18" cy="18" r="2" fill="#f0a500" />
-      <polygon points="18,4 20.5,18 18,16 15.5,18" fill="#f0a500" />
-      <polygon points="18,32 15.5,18 18,20 20.5,18" fill="#484f58" />
-      <polygon points="4,18 18,15.5 16,18 18,20.5" fill="#8b949e" />
-      <polygon points="32,18 18,20.5 20,18 18,15.5" fill="#8b949e" />
-    </svg>
+    <div className={styles.splash}>
+      <div className={styles.splashGlow}></div>
+      <div className={styles.splashCw}>
+        <svg width="110" height="110" viewBox="0 0 36 36" fill="none">
+          <circle className={styles.sDot}  cx="18" cy="18" r="2"  fill="#f0a500"/>
+          <circle className={styles.sRing} cx="18" cy="18" r="16" stroke="#2a3140" strokeWidth="1.5" fill="none"/>
+          <polygon className={styles.sN}   points="18,5 20.2,17.5 18,16.2 15.8,17.5" fill="#f0a500"/>
+          <polygon className={styles.sS}   points="18,31 15.8,18.5 18,19.8 20.2,18.5" fill="#484f58"/>
+          <polygon className={styles.sW}   points="5,18 17.5,15.8 16.2,18 17.5,20.2"  fill="#6b7280"/>
+          <polygon className={styles.sE}   points="31,18 18.5,20.2 19.8,18 18.5,15.8" fill="#6b7280"/>
+        </svg>
+      </div>
+      <div className={styles.splashTitle}>Bureaucracy <span>GPS</span></div>
+      <div className={styles.splashSub}>NAVIGATE · GOVERNMENT · SYSTEMS</div>
+      <div className={styles.splashBy}>&#x26A1; BUILT BY SAURABH SHARMA</div>
+    </div>
   )
 }
+
+// ── Header ────────────────────────────────────────────────────────────────────
 
 function Header({ lang, setLang }) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
-        <Compass />
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="16" stroke="#30363d" strokeWidth="1.5"/>
+          <circle cx="18" cy="18" r="2" fill="#f0a500"/>
+          <polygon points="18,4 20.5,18 18,16 15.5,18" fill="#f0a500"/>
+          <polygon points="18,32 15.5,18 18,20 20.5,18" fill="#484f58"/>
+          <polygon points="4,18 18,15.5 16,18 18,20.5" fill="#8b949e"/>
+          <polygon points="32,18 18,20.5 20,18 18,15.5" fill="#8b949e"/>
+        </svg>
         <div>
           <div className={styles.logoText}>Bureaucracy GPS</div>
           <div className={styles.logoSub}>{lang === 'en' ? 'Navigate government systems' : 'सरकारी प्रक्रिया आसान बनाएं'}</div>
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-        <button
-          className={styles.langToggle}
-          onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-        >
+        <button className={styles.langToggle} onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}>
           {lang === 'en' ? '🇮🇳 हिन्दी' : '🇬🇧 English'}
         </button>
         <div className={styles.headerTag}>Beta · Free</div>
@@ -145,6 +165,8 @@ function Header({ lang, setLang }) {
     </header>
   )
 }
+
+// ── Home Screen ───────────────────────────────────────────────────────────────
 
 function HomeScreen({ onSubmit, lang }) {
   const [situation, setSituation] = useState('')
@@ -172,19 +194,14 @@ function HomeScreen({ onSubmit, lang }) {
     <>
       <div className={styles.hero}>
         <div className={styles.heroEyebrow}>{t.eyebrow}</div>
-        <h1 className={styles.heroTitle}>
-          {t.title1}<br /><span>{t.title2}</span>
-        </h1>
+        <h1 className={styles.heroTitle}>{t.title1}<br /><span>{t.title2}</span></h1>
         <p className={styles.heroSub}>{t.sub}</p>
         <div className={styles.examples}>
           {EXAMPLES[lang].map((ex) => (
-            <button key={ex} className={styles.exampleChip} onClick={() => setSituation(ex)}>
-              {ex}
-            </button>
+            <button key={ex} className={styles.exampleChip} onClick={() => setSituation(ex)}>{ex}</button>
           ))}
         </div>
       </div>
-
       <div className={styles.formWrap}>
         <div className={styles.formCard}>
           <label className={styles.formLabel}>{t.label}</label>
@@ -213,15 +230,15 @@ function HomeScreen({ onSubmit, lang }) {
               </div>
             </div>
           </div>
-          <button className={styles.btnMain} onClick={handleSubmit}>
-            {t.btn}
-          </button>
+          <button className={styles.btnMain} onClick={handleSubmit}>{t.btn}</button>
         </div>
         <div className={styles.formFooter}>{t.footer}</div>
       </div>
     </>
   )
 }
+
+// ── Loading Screen ────────────────────────────────────────────────────────────
 
 function LoadingScreen({ msg, lang }) {
   return (
@@ -232,6 +249,8 @@ function LoadingScreen({ msg, lang }) {
     </div>
   )
 }
+
+// ── Step Card ─────────────────────────────────────────────────────────────────
 
 function StepCard({ step, defaultOpen, t }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -262,9 +281,7 @@ function StepCard({ step, defaultOpen, t }) {
             <div className={styles.docsSection}>
               <div className={styles.docsTitle}>{t.docs}</div>
               {step.documents_needed.map((doc, i) => (
-                <div key={i} className={styles.docItem}>
-                  <span className={styles.docDot} />{doc}
-                </div>
+                <div key={i} className={styles.docItem}><span className={styles.docDot} />{doc}</div>
               ))}
             </div>
           )}
@@ -273,21 +290,15 @@ function StepCard({ step, defaultOpen, t }) {
               🔗 {t.official}: {step.official_link}
             </a>
           )}
-          {step.tip && (
-            <div className={styles.tipBox}>
-              <span style={{ fontSize: 12, marginRight: 6 }}>💡</span>{step.tip}
-            </div>
-          )}
-          {step.warning && (
-            <div className={styles.warnBox}>
-              <span style={{ fontSize: 12, marginRight: 6 }}>⚠</span>{step.warning}
-            </div>
-          )}
+          {step.tip && <div className={styles.tipBox}><span style={{ fontSize: 12, marginRight: 6 }}>💡</span>{step.tip}</div>}
+          {step.warning && <div className={styles.warnBox}><span style={{ fontSize: 12, marginRight: 6 }}>⚠</span>{step.warning}</div>}
         </div>
       )}
     </div>
   )
 }
+
+// ── Results Screen ────────────────────────────────────────────────────────────
 
 function ResultsScreen({ guide, onBack, lang }) {
   const [allOpen, setAllOpen] = useState(false)
@@ -295,8 +306,8 @@ function ResultsScreen({ guide, onBack, lang }) {
 
   const copyGuide = () => {
     let text = guide.title + '\n\n' + guide.summary
-    text += '\n\n' + t.time + ': ' + guide.estimated_total_time
-    text += '\n' + t.cost + ': ' + guide.estimated_total_cost + '\n\n'
+    text += '\n\nTime: ' + guide.estimated_total_time
+    text += '\nCost: ' + guide.estimated_total_cost + '\n\n'
     guide.steps.forEach((s) => {
       text += `${s.step}. ${s.title}\n${s.description}\n`
       if (s.documents_needed?.length) text += t.docs + ': ' + s.documents_needed.join(', ') + '\n'
@@ -308,7 +319,7 @@ function ResultsScreen({ guide, onBack, lang }) {
   }
 
   const shareWhatsApp = () => {
-    const text = `*${guide.title}*\n\n${guide.summary}\n\n⏱ ${guide.estimated_total_time} | 💰 ${guide.estimated_total_cost}\n\n${guide.steps.map(s => `*${s.step}. ${s.title}*\n${s.description}`).join('\n\n')}\n\n_Bureaucracy GPS से — bureaucracy-gps.vercel.app_`
+    const text = `*${guide.title}*\n\n${guide.summary}\n\n⏱ ${guide.estimated_total_time} | 💰 ${guide.estimated_total_cost}\n\n${guide.steps.map(s => `*${s.step}. ${s.title}*\n${s.description}`).join('\n\n')}\n\n_Bureaucracy GPS — bureaucracy-gps.vercel.app_`
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
   }
 
@@ -345,112 +356,18 @@ function ResultsScreen({ guide, onBack, lang }) {
   )
 }
 
+// ── Error Screen ──────────────────────────────────────────────────────────────
+
 function ErrorScreen({ onBack, lang }) {
-  const t = UI[lang]
   return (
     <div className={styles.errorWrap}>
-      <div className={styles.errorBox}>{t.error}</div>
-      <button className={styles.btnBack} onClick={onBack}>{t.tryAgain}</button>
+      <div className={styles.errorBox}>{UI[lang].error}</div>
+      <button className={styles.btnBack} onClick={onBack}>{UI[lang].tryAgain}</button>
     </div>
   )
 }
 
-function SplashScreen({ onDone }) {
-  useEffect(() => { const t = setTimeout(() => onDone(), 5800); return () => clearTimeout(t) }, [])
-  return (
-    <div className={styles.splash}>
-      <div className={styles.splashGlow} id="sg"></div>
-      <div className={styles.splashCw} id="cw">
-        <svg id="cssvg" width="110" height="110" viewBox="0 0 36 36" fill="none">
-          <circle id="cdot"   cx="18" cy="18" r="0"  fill="#f0a500"/>
-          <circle id="cring"  cx="18" cy="18" r="16" stroke="#2a3140" strokeWidth="1.5" fill="none" strokeDasharray="101" strokeDashoffset="101"/>
-          <polygon id="cn"  points="18,5 20.2,17.5 18,16.2 15.8,17.5" fill="#f0a500" opacity="0"/>
-          <polygon id="cs"  points="18,31 15.8,18.5 18,19.8 20.2,18.5" fill="#484f58" opacity="0"/>
-          <polygon id="cw2" points="5,18 17.5,15.8 16.2,18 17.5,20.2"  fill="#6b7280" opacity="0"/>
-          <polygon id="ce"  points="31,18 18.5,20.2 19.8,18 18.5,15.8" fill="#6b7280" opacity="0"/>
-        </svg>
-      </div>
-      <div className={styles.splashTitle} id="sttl" style={{opacity:0}}>Bureaucracy <span>GPS</span></div>
-      <div className={styles.splashSub}   id="ssub" style={{opacity:0}}>NAVIGATE · GOVERNMENT · SYSTEMS</div>
-      <div className={styles.splashBy}    id="sby"  style={{opacity:0}}>&#x26A1; BUILT BY SAURABH SHARMA</div>
-      <SplashRunner />
-    </div>
-  )
-}
-
-function SplashRunner() {
-  useEffect(() => {
-    function anim(el, prop, from, to, dur, delay, easing, done) {
-      setTimeout(() => {
-        const start = performance.now()
-        const ease = t => {
-          if (easing === 'spring') return 1 - Math.pow(2,-10*t) * Math.cos(t * Math.PI * 3.5)
-          if (easing === 'out')    return 1 - Math.pow(1-t, 3)
-          return t
-        }
-        const step = now => {
-          const t = Math.min((now - start) / dur, 1)
-          const v = from + (to - from) * ease(t)
-          if (prop === 'dashoffset') el.style.strokeDashoffset = v
-          else if (prop === 'r')    el.setAttribute('r', v)
-          else if (prop === 'opacity') el.style.opacity = v
-          if (t < 1) requestAnimationFrame(step)
-          else if (done) done()
-        }
-        requestAnimationFrame(step)
-      }, delay)
-    }
-
-    const dot   = document.getElementById('cdot')
-    const ring  = document.getElementById('cring')
-    const north = document.getElementById('cn')
-    const south = document.getElementById('cs')
-    const west  = document.getElementById('cw2')
-    const east  = document.getElementById('ce')
-    const cw    = document.getElementById('cw')
-    const glow  = document.getElementById('sg')
-    const ttl   = document.getElementById('sttl')
-    const sub   = document.getElementById('ssub')
-    const by    = document.getElementById('sby')
-
-    anim(dot,   'r',          0,   2.5, 350, 200,  'spring')
-    setTimeout(() => { if(glow) glow.style.opacity = 1 }, 400)
-    anim(ring,  'dashoffset', 101, 0,   900, 600,  'out')
-    anim(dot,   'r',          2.5, 2,   200, 1400, 'out')
-    anim(north, 'opacity',    0,   1,   350, 1600, 'out')
-    anim(south, 'opacity',    0,   1,   350, 1950, 'out')
-    anim(west,  'opacity',    0,   1,   300, 2250, 'out')
-    anim(east,  'opacity',    0,   1,   300, 2450, 'out')
-
-    setTimeout(() => { if(cw) cw.style.animation = 'splashRock 2.2s cubic-bezier(.4,0,.2,1) forwards' }, 2800)
-    setTimeout(() => { if(ttl) { ttl.style.animation = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 3200)
-    setTimeout(() => { if(sub) { sub.style.animation = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 3700)
-    setTimeout(() => { if(by)  { by.style.animation  = 'splashTextIn .75s cubic-bezier(.4,0,.2,1) forwards' } }, 4100)
-    setTimeout(() => { if(cw)  { cw.style.animation  = 'splashFloat 3.5s ease infinite' } }, 5200)
-  }, [])
-  return null
-}
-
-function _unused() { setTimeout(() => {}, 0)
-  return (
-    <div className={styles.splash}>
-      <div className={styles.splashBg}></div>
-      <div className={styles.splashCompass}>
-        <svg width="80" height="80" viewBox="0 0 36 36" fill="none">
-          <circle cx="18" cy="18" r="16" stroke="#30363d" strokeWidth="1.5"/>
-          <circle cx="18" cy="18" r="2" fill="#f0a500"/>
-          <polygon points="18,4 20.5,18 18,16 15.5,18" fill="#f0a500"/>
-          <polygon points="18,32 15.5,18 18,20 20.5,18" fill="#484f58"/>
-          <polygon points="4,18 18,15.5 16,18 18,20.5" fill="#8b949e"/>
-          <polygon points="32,18 18,20.5 20,18 18,15.5" fill="#8b949e"/>
-        </svg>
-      </div>
-      <div className={styles.splashTitle}>Bureaucracy <span>GPS</span></div>
-      <div className={styles.splashSub}>NAVIGATE · GOVERNMENT · SYSTEMS</div>
-      <div className={styles.splashBy}>&#x26A1; BUILT BY SAURABH SHARMA</div>
-    </div>
-  )
-}
+// ── App Root ──────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [splash, setSplash] = useState(true)
@@ -468,45 +385,41 @@ export default function App() {
     }, 2200)
 
     const isHindi = lang === 'hi'
-
-    const prompt = `You are Bureaucracy GPS, an expert in government processes for every country. Help the user navigate their situation.
+    const prompt = `You are Bureaucracy GPS, an expert in government processes for every country.
 
 Situation: ${situation}
 Country: ${country}
 State/Region: ${state}
-Response language: ${isHindi ? 'Hindi (Devanagari script)' : 'Simple English — explain like talking to a neighbour, not a lawyer. Use very simple words.'}
+Response language: ${isHindi ? 'Hindi (Devanagari script)' : 'Simple English — explain like talking to a neighbour, not a lawyer.'}
 
 Rules:
 - Use simple, easy to understand language
 - Be very specific about office names, form numbers, websites
 - Include official government website URLs wherever possible
-- Explain WHY each step is needed in simple terms
 
 Respond ONLY with valid JSON (no markdown, no backticks):
 {
-  "title": "Short title ${isHindi ? 'in Hindi' : 'in simple English'}",
-  "summary": "2-3 simple sentences explaining what needs to happen overall",
-  "estimated_total_time": "e.g. 2-4 हफ्ते or 2-4 weeks",
-  "estimated_total_cost": "e.g. ₹500-2000 or Free",
+  "title": "Short title",
+  "summary": "2-3 simple sentences explaining what needs to happen",
+  "estimated_total_time": "e.g. 2-4 weeks",
+  "estimated_total_cost": "e.g. Rs.500-2000 or Free",
   "steps": [
     {
       "step": 1,
       "title": "Step title",
-      "description": "Very simple explanation of what to do. Like explaining to someone who has never done this before.",
-      "where_to_go": "Exact office name or website URL",
-      "official_link": "Official government website URL if available, or empty string",
-      "documents_needed": ["document 1", "document 2"],
+      "description": "Simple explanation of what to do",
+      "where_to_go": "Exact office name or website",
+      "official_link": "Official government URL or empty string",
+      "documents_needed": ["doc1", "doc2"],
       "time_estimate": "e.g. 1-3 days",
-      "cost_estimate": "e.g. ₹100 or Free",
-      "tip": "Simple practical tip that saves time or money, or empty string",
-      "warning": "Important warning in simple words, or empty string"
+      "cost_estimate": "e.g. Rs.100 or Free",
+      "tip": "Practical tip or empty string",
+      "warning": "Important warning or empty string"
     }
   ],
-  "important_notes": "Any important things to know, in simple language",
+  "important_notes": "Any important things to know",
   "online_resources": ["name - URL"]
-}
-
-Include 4-8 steps. Be specific and practical.`
+}`
 
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -543,10 +456,10 @@ Include 4-8 steps. Be specific and practical.`
   return (
     <>
       <Header lang={lang} setLang={setLang} />
-      {screen === 'home' && <HomeScreen onSubmit={handleSubmit} lang={lang} />}
+      {screen === 'home'    && <HomeScreen onSubmit={handleSubmit} lang={lang} />}
       {screen === 'loading' && <LoadingScreen msg={loadingMsg} lang={lang} />}
       {screen === 'results' && <ResultsScreen guide={guide} onBack={() => setScreen('home')} lang={lang} />}
-      {screen === 'error' && <ErrorScreen onBack={() => setScreen('home')} lang={lang} />}
+      {screen === 'error'   && <ErrorScreen onBack={() => setScreen('home')} lang={lang} />}
     </>
   )
 }

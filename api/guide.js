@@ -1,80 +1,107 @@
-// api/guide.js
-// Uses Google Gemini 1.5 Flash — 1,500 requests/day FREE forever
-// Get your free API key at: https://aistudio.google.com
+// Free models to try in order - updated March 2026
+const FREE_MODELS = [
+  "stepfun/step-3.5-flash:free",
+  "arcee-ai/trinity-large-preview:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "arcee-ai/trinity-mini:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "z-ai/glm-4.5-air:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "openrouter/free",
+];
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+async function callModel(model, messages, apiKey) {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://bureaucracy-gps.vercel.app",
+      "X-Title": "Bureaucracy GPS",
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.3,
+      max_tokens: 2500,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
   }
 
-  const { situation, country, state } = req.body
+  const data = await res.json();
+  const content =
+    data?.choices?.[0]?.message?.content ||
+    data?.choices?.[0]?.message?.reasoning ||
+    "";
 
-  if (!situation || !country || !state) {
-    return res.status(400).json({ error: 'Missing required fields' })
-  }
-
-  const prompt = `You are Bureaucracy GPS, a world-class expert in government processes, administrative procedures, and bureaucratic systems for every country.
-
-A user needs help navigating a government or administrative process. Give them a clear, accurate, actionable step-by-step roadmap.
-
-Situation: ${situation}
-Country: ${country}
-State/Region: ${state}
-
-Respond ONLY with valid JSON (no markdown, no backticks, just raw JSON):
-{
-  "title": "Short descriptive title of the process",
-  "summary": "2-3 sentence plain English overview of what needs to happen",
-  "estimated_total_time": "e.g. 2-4 weeks",
-  "estimated_total_cost": "e.g. Rs.500-2000 or Free",
-  "steps": [
-    {
-      "step": 1,
-      "title": "Step title",
-      "description": "Clear explanation of what to do in this step and why",
-      "where_to_go": "Specific office, department, website, or location",
-      "documents_needed": ["document 1", "document 2"],
-      "time_estimate": "e.g. 1-3 days",
-      "cost_estimate": "e.g. Rs.100 or Free",
-      "tip": "Practical tip that saves time or money, or empty string",
-      "warning": "Important warning or common mistake, or empty string"
-    }
-  ],
-  "important_notes": "Any crucial notes, recent changes, or things that vary by situation",
-  "online_resources": ["Official resource name and URL if known"]
+  if (!content) throw new Error("Empty response from model");
+  return content;
 }
 
-Be specific, accurate, and practical. Include 4-8 steps.`
-
-  try {
-    const apiKey = process.env.GEMINI_API_KEY
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 2000 },
-      }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Gemini API error:', data)
-      return res.status(500).json({ error: 'AI service error' })
-    }
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) throw new Error('Empty response')
-
-    const clean = text.replace(/```json|```/g, '').trim()
-    const guide = JSON.parse(clean)
-
-    return res.status(200).json(guide)
-  } catch (err) {
-    console.error('Error:', err)
-    return res.status(500).json({ error: 'Failed to generate guide' })
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
+
+  const { situation, country, userApiKey } = req.body;
+
+  if (!situation?.trim()) {
+    return res.status(400).json({ error: "Situation is required" });
+  }
+
+  const apiKey = userApiKey?.trim() || process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    return res.status(503).json({ error: "NO_API_KEY" });
+  }
+
+  const messages = [
+    {
+      role: "user",
+      content: `You are a bureaucracy expert who helps people navigate government processes clearly and practically.
+
+A user needs help with the following situation${country ? ` in ${country}` : ""}:
+"${situation}"
+
+Provide a clear, step-by-step guide. For each step include:
+- Which office/department to go to
+- What documents to bring
+- What forms to fill
+- How long it typically takes
+- Any fees involved
+- Practical tips to avoid common mistakes
+
+Format your response in clean markdown with numbered steps. Be specific and practical, not vague. If you don't know exact details, say so honestly rather than guessing.`,
+    },
+  ];
+
+  const errors = [];
+
+  // Try each free model in order, fall back to next on failure
+  for (const model of FREE_MODELS) {
+    try {
+      console.log(`Trying model: ${model}`);
+      const content = await callModel(model, messages, apiKey);
+      console.log(`Success with: ${model}`);
+      return res.status(200).json({ guide: content, model });
+    } catch (err) {
+      console.log(`Failed ${model}: ${err.message}`);
+      errors.push({ model, error: err.message });
+    }
+  }
+
+  // All models failed
+  if (!userApiKey) {
+    return res.status(503).json({ error: "ALL_MODELS_FAILED" });
+  }
+
+  return res.status(503).json({
+    error: "USER_KEY_FAILED",
+    message: "All models failed even with your API key. Please try again later.",
+    details: errors,
+  });
 }

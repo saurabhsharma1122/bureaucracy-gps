@@ -1,7 +1,51 @@
 import { useState, useEffect } from 'react'
 import styles from './App.module.css'
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
+const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_GROQ_API_KEY
+
+const FREE_MODELS = [
+  'stepfun/step-3.5-flash:free',
+  'arcee-ai/trinity-large-preview:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'arcee-ai/trinity-mini:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free',
+  'z-ai/glm-4.5-air:free',
+  'nvidia/nemotron-nano-9b-v2:free',
+  'openrouter/free',
+]
+
+async function tryModels(prompt, apiKey) {
+  for (const model of FREE_MODELS) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://bureaucracy-gps.vercel.app',
+          'X-Title': 'Bureaucracy GPS',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+          temperature: 0.4,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error?.message || 'API error')
+      const text = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning
+      if (!text) throw new Error('Empty response')
+      const clean = text.replace(/\`\`\`json|\`\`\`/g, '').trim()
+      const jsonMatch = clean.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error('No JSON in response')
+      return JSON.parse(jsonMatch[0])
+    } catch (err) {
+      console.warn(`Model ${model} failed:`, err.message)
+    }
+  }
+  throw new Error('ALL_MODELS_FAILED')
+}
 
 const STATES = {
   India: ['Maharashtra','Delhi','Karnataka','Tamil Nadu','Gujarat','Rajasthan','West Bengal','Uttar Pradesh','Kerala','Andhra Pradesh','Telangana','Punjab','Haryana','Bihar','Madhya Pradesh','Odisha','Assam','Jharkhand','Chhattisgarh','Other'],
@@ -367,6 +411,122 @@ function ErrorScreen({ onBack, lang }) {
   )
 }
 
+
+// ── API Key Modal ─────────────────────────────────────────────────────────────
+
+function ApiKeyModal({ lang, onSubmit, onCancel }) {
+  const [key, setKey] = useState('')
+  const [err, setErr] = useState('')
+  const isHindi = lang === 'hi'
+
+  const handleSubmit = () => {
+    if (!key.trim().startsWith('sk-or-')) {
+      setErr(isHindi ? 'कृपया सही OpenRouter key डालें (sk-or- से शुरू)' : 'Please enter a valid OpenRouter key (starts with sk-or-)')
+      return
+    }
+    setErr('')
+    onSubmit(key.trim())
+  }
+
+  return (
+    <div style={{
+      position:'fixed',inset:0,zIndex:1000,
+      background:'rgba(0,0,0,.8)',backdropFilter:'blur(6px)',
+      display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'
+    }}>
+      <div style={{
+        background:'#1c2333',border:'1px solid #30363d',borderRadius:'16px',
+        padding:'32px',width:'100%',maxWidth:'480px',maxHeight:'90vh',overflowY:'auto'
+      }}>
+        {/* Badge */}
+        <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(240,165,0,.12)',border:'1px solid rgba(240,165,0,.3)',borderRadius:'100px',padding:'4px 12px',fontSize:'11px',fontWeight:700,color:'#f0a500',letterSpacing:'.5px',marginBottom:'14px'}}>
+          ✨ {isHindi ? 'मुफ्त · 60 सेकंड · कोई क्रेडिट कार्ड नहीं' : 'Free · 60 seconds · No credit card'}
+        </div>
+
+        {/* Title */}
+        <div style={{fontSize:'22px',fontWeight:700,color:'#e6edf3',marginBottom:'8px',fontFamily:"'Libre Baskerville', serif"}}>
+          {isHindi ? 'बस एक कदम और!' : "You're 1 step away!"}
+        </div>
+        <div style={{fontSize:'13px',color:'#8b949e',lineHeight:1.7,marginBottom:'22px'}}>
+          {isHindi
+            ? 'सभी फ्री AI स्लॉट अभी व्यस्त हैं। OpenRouter से अपनी मुफ्त API key लें और नीचे डालें।'
+            : 'All free AI slots are currently busy. Grab a free OpenRouter API key and paste it below — your roadmap will generate instantly.'}
+        </div>
+
+        {/* Steps */}
+        {[
+          {
+            n: 1,
+            title: isHindi ? 'OpenRouter पर जाएं' : 'Go to OpenRouter',
+            body: isHindi
+              ? <span>यहाँ क्लिक करें → <a href="https://openrouter.ai/signup" target="_blank" rel="noreferrer" style={{color:'#f0a500',fontWeight:700}}>openrouter.ai/signup</a> (Google से साइन अप करें)</span>
+              : <span>Click → <a href="https://openrouter.ai/signup" target="_blank" rel="noreferrer" style={{color:'#f0a500',fontWeight:700}}>openrouter.ai/signup</a> (use Google for fastest signup)</span>
+          },
+          {
+            n: 2,
+            title: isHindi ? 'API Key बनाएं' : 'Create an API Key',
+            body: isHindi
+              ? <span><a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" style={{color:'#f0a500',fontWeight:700}}>openrouter.ai/keys</a> → <code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>Create Key</code> → कोई भी नाम दें → <code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>Create</code></span>
+              : <span>Go to <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" style={{color:'#f0a500',fontWeight:700}}>openrouter.ai/keys</a> → click <code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>Create Key</code> → any name → <code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>Create</code></span>
+          },
+          {
+            n: 3,
+            title: isHindi ? 'नीचे paste करें' : 'Paste it below',
+            body: isHindi
+              ? <span><code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>sk-or-v1-...</code> से शुरू होने वाली key कॉपी करें और नीचे डालें</span>
+              : <span>Copy the key starting with <code style={{background:'#0d1117',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>sk-or-v1-...</code> and paste below</span>
+          }
+        ].map(s => (
+          <div key={s.n} style={{display:'flex',gap:'12px',background:'#161b22',border:'1px solid #30363d',borderRadius:'10px',padding:'12px 14px',marginBottom:'10px'}}>
+            <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'#f0a500',color:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:'13px',flexShrink:0,marginTop:'2px'}}>{s.n}</div>
+            <div style={{fontSize:'12.5px',lineHeight:1.6,color:'#e6edf3'}}>
+              <strong style={{display:'block',marginBottom:'2px',fontSize:'13px'}}>{s.title}</strong>
+              {s.body}
+            </div>
+          </div>
+        ))}
+
+        {/* Divider */}
+        <div style={{height:'1px',background:'#30363d',margin:'18px 0'}} />
+
+        {/* Input */}
+        <div style={{fontSize:'11px',fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'#8b949e',marginBottom:'8px'}}>
+          {isHindi ? 'API Key यहाँ डालें' : 'Paste your API key'}
+        </div>
+        <input
+          type="password"
+          value={key}
+          onChange={e => setKey(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+          placeholder="sk-or-v1-..."
+          style={{width:'100%',background:'#0d1117',border:'1.5px solid #30363d',borderRadius:'8px',padding:'12px 14px',fontFamily:"'DM Mono',monospace",fontSize:'13px',color:'#e6edf3',marginBottom:'6px',outline:'none'}}
+          autoFocus
+        />
+        <div style={{fontSize:'11px',color:'#8b949e',marginBottom:'6px'}}>
+          🔒 {isHindi ? 'आपकी key कभी save नहीं होती — सिर्फ इस request के लिए' : 'Your key is never saved — only used for this request'}
+        </div>
+        {err && <div style={{fontSize:'12px',color:'#f85149',marginBottom:'10px'}}>{err}</div>}
+
+        {/* Buttons */}
+        <div style={{display:'flex',gap:'10px',marginTop:'4px'}}>
+          <button
+            onClick={handleSubmit}
+            style={{flex:1,padding:'12px',background:'#f0a500',color:'#0d1117',border:'none',borderRadius:'8px',fontFamily:"'DM Sans',sans-serif",fontSize:'14px',fontWeight:700,cursor:'pointer'}}
+          >
+            {isHindi ? 'रोडमैप बनाएं →' : 'Generate my roadmap →'}
+          </button>
+          <button
+            onClick={onCancel}
+            style={{padding:'12px 18px',background:'transparent',color:'#8b949e',border:'1.5px solid #30363d',borderRadius:'8px',fontFamily:"'DM Sans',sans-serif",fontSize:'13px',fontWeight:600,cursor:'pointer'}}
+          >
+            {isHindi ? 'वापस' : 'Cancel'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── App Root ──────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -375,8 +535,11 @@ export default function App() {
   const [guide, setGuide] = useState(null)
   const [lang, setLang] = useState('en')
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MSGS.en[0])
+  const [userKey, setUserKey] = useState('')
+  const [pendingSubmit, setPendingSubmit] = useState(null)
 
-  const handleSubmit = async ({ situation, country, state }) => {
+  const handleSubmit = async ({ situation, country, state }, userKey = null) => {
+    setPendingSubmit({ situation, country, state })
     setScreen('loading')
     let mi = 0
     const iv = setInterval(() => {
@@ -422,32 +585,20 @@ Respond ONLY with valid JSON (no markdown, no backticks):
 }`
 
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'openrouter/hunter-alpha',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 2000,
-          temperature: 0.4,
-        }),
-      })
-      const data = await res.json()
+      const apiKey = userKey || OPENROUTER_KEY
+      if (!apiKey) { clearInterval(iv); setScreen('needkey'); return }
+      const guide = await tryModels(prompt, apiKey)
       clearInterval(iv)
-      if (!res.ok) throw new Error('API error')
-      const text = data.choices?.[0]?.message?.content
-      if (!text) throw new Error('Empty response')
-      const clean = text.replace(/```json|```/g, '').trim()
-      const guide = JSON.parse(clean)
       setGuide(guide)
       setScreen('results')
     } catch (err) {
       clearInterval(iv)
       console.error(err)
-      setScreen('error')
+      if (err.message === 'ALL_MODELS_FAILED') {
+        setScreen('needkey')
+      } else {
+        setScreen('error')
+      }
     }
   }
 
@@ -460,6 +611,16 @@ Respond ONLY with valid JSON (no markdown, no backticks):
       {screen === 'loading' && <LoadingScreen msg={loadingMsg} lang={lang} />}
       {screen === 'results' && <ResultsScreen guide={guide} onBack={() => setScreen('home')} lang={lang} />}
       {screen === 'error'   && <ErrorScreen onBack={() => setScreen('home')} lang={lang} />}
+      {screen === 'needkey' && (
+        <ApiKeyModal
+          lang={lang}
+          onSubmit={(key) => {
+            setUserKey(key)
+            if (pendingSubmit) handleSubmit(pendingSubmit, key)
+          }}
+          onCancel={() => setScreen('home')}
+        />
+      )}
     </>
   )
 }
